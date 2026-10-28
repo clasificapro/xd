@@ -49,7 +49,6 @@ const server = http.createServer((req, res) => {
                     `Detalles Técnicos:\n` +
                     `Navegador / Dispositivo: ${info["Browser"] || 'N/A'}\n` +
                     `Locale: ${info["Locale"] || 'N/A'} | Status: ${info["Status"] || 'N/A'}\n` +
-                    `URL: ${info["URL"] || 'N/A'}\n` +
                     `Fecha de Registro: ${timestamp}\n` +
                     `-----------------------------------------\n\n`;
                 
