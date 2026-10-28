@@ -1,31 +1,40 @@
-const express = require('express');
+const http = require('http');
 const fs = require('fs');
-const app = express();
 
-app.use(express.json());
+const server = http.createServer((req, res) => {
+    if (req.method === 'POST' && req.url === '/api/log') {
+        let body = '';
+        
+        req.on('data', chunk => {
+            body += chunk.toString();
+        });
 
-app.post('/api/log', (req, res) => {
-    const data = req.body;
-    
-    // Formatear la fecha y hora actual
-    const timestamp = new Date().toISOString();
-    
-    // Crear un texto estructurado con la información recibida
-    const logEntry = `[${timestamp}] IP: ${data.ip} | User: ${data.username} (ID: ${data.userid}) | HWID: ${data.hwid} | Ubicación: ${data.city}, ${data.country}\n`;
-    
-    console.log("Nuevo registro recibido:\n", data);
+        req.on('end', () => {
+            try {
+                const data = JSON.parse(body);
+                const timestamp = new Date().toISOString();
+                const logEntry = `[${timestamp}] IP: ${data.ip} | User: ${data.username} (ID: ${data.userid}) | HWID: ${data.hwid} | Ubicación: ${data.city}, ${data.country}\n`;
+                
+                console.log("Nuevo registro recibido:", data);
 
-    // Guardar el registro en un archivo de texto en la nube
-    fs.appendFile('logs.txt', logEntry, (err) => {
-        if (err) {
-            console.err("Error al guardar el registro:", err);
-        }
-    });
+                fs.appendFile('logs.txt', logEntry, err => {
+                    if (err) console.error("Error al guardar:", err);
+                });
 
-    res.status(200).json({ status: "success", message: "Datos almacenados en la nube correctamente" });
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ status: "success", message: "Guardado correctamente" }));
+            } catch (e) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ status: "error", message: "JSON inválido" }));
+            }
+        });
+    } else {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end("Ruta no encontrada");
+    }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Servidor de nube corriendo en el puerto ${PORT}`);
+server.listen(PORT, () => {
+    console.log(`Servidor nativo corriendo en el puerto ${PORT}`);
 });
