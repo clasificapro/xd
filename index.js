@@ -35,7 +35,7 @@ const server = http.createServer((req, res) => {
 });
 
 // Forzar el puerto exacto que te asignó Bot-Hosting
-const PORT = 26237;
+const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, () => {
     console.log(`Servidor activo en el puerto ${PORT}`);
